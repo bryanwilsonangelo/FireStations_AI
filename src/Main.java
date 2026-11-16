@@ -2,8 +2,12 @@
 import input.MapReader;
 import model.MapData;
 import model.Cell;
-
+import model.Chromosome;
+import model.Individual;
 import algorithm.DistanceMatrix;
+
+import java.util.Random;
+
 import algorithm.CostCalculator;
 
 public class Main {
@@ -14,8 +18,7 @@ public class Main {
 
             // 1. Membaca file peta.
             MapData map = MapReader.readMap(
-                "maps/n20_klaster_04.txt"
-            );
+                    "maps/n20_acak_01.txt");
 
             System.out.println("=== INFORMASI PETA ===");
 
@@ -45,46 +48,117 @@ public class Main {
             DistanceMatrix matrix =
                 new DistanceMatrix(map, map.getKosong());
 
-            System.out.println("\n=== DISTANCE MATRIX ===");
+            // 3. Membuat random generator.
+            Random random = new Random(12345);
+
+            // 4. Membuat kromosom binary.
+            Chromosome binary =
+                Chromosome.createRandom(
+                    map.getJumlahSelKosong(),
+                    map.getP(),
+                    Chromosome.Representation.BINARY,
+                    random
+                );
+
+            // 5. Membuat kromosom integer.
+            Chromosome integer =
+                Chromosome.createRandom(
+                    map.getJumlahSelKosong(),
+                    map.getP(),
+                    Chromosome.Representation.INTEGER,
+                    random
+                );
+
+            // 6. Membuat individu.
+            Individual individualBinary =
+                new Individual(binary, matrix);
+
+            Individual individualInteger =
+                new Individual(integer, matrix);
+
+            // 7. Menampilkan hasil.
+            System.out.println("=== BINARY ENCODING ===");
+
+            System.out.println(binary);
 
             System.out.println(
-                "Jumlah baris: " + matrix.getHouseCount()
+                "Jumlah FS: " +
+                binary.getStationIndices().length
+            );
+
+            System.out.println(individualBinary);
+
+            System.out.println("\n=== INTEGER ENCODING ===");
+
+            System.out.println(integer);
+
+            System.out.println(
+                "Jumlah FS: " +
+                integer.getStationIndices().length
+            );
+
+            System.out.println(individualInteger);
+
+            // 8. Menampilkan posisi FS.
+            System.out.println("\n=== POSISI FS BINARY ===");
+
+            for (int index : binary.getStationIndices()) {
+
+                System.out.println(
+                    "Indeks sel kosong: " + index
+                );
+
+                System.out.println(
+                    "Koordinat: " +
+                    matrix.getEmptyCells().get(index)
+                );
+            }
+
+            System.out.println("\n=== POSISI FS INTEGER ===");
+
+            for (int index : integer.getStationIndices()) {
+
+                System.out.println(
+                    "Indeks sel kosong: " + index
+                );
+
+                System.out.println(
+                    "Koordinat: " +
+                    matrix.getEmptyCells().get(index)
+                );
+            }
+
+            // 9. Uji kesetaraan representasi.
+            // Mengambil posisi FS dari binary.
+            int[] samePositions = binary.getStationIndices();
+
+            // Membuat integer dengan posisi yang sama.
+            Chromosome sameInteger =
+                Chromosome.fromStationIndices(
+                    samePositions,
+                    map.getJumlahSelKosong(),
+                    Chromosome.Representation.INTEGER
+                );
+
+            // Membuat individu integer.
+            Individual testIndividual =
+                new Individual(sameInteger, matrix);
+
+            // Membandingkan cost.
+            System.out.println("\n=== UJI KESETARAAN ===");
+
+            System.out.println(
+                "Cost Binary: " + individualBinary.getCost()
             );
 
             System.out.println(
-                "Jumlah kolom: " + matrix.getEmptyCount()
+                "Cost Integer: " + testIndividual.getCost()
             );
 
-            // 3. Contoh posisi FS sementara.
-            // Nanti posisi ini berasal dari kromosom GA.
-            int[] stationIndices = new int[map.getP()];
-
-            for (int i = 0; i < map.getP(); i++) {
-                stationIndices[i] = i;
-            }
-
-            // 4. Menghitung cost.
-            double cost = CostCalculator.calculateCost(
-                matrix,
-                stationIndices
+            System.out.println(
+                "Apakah sama: " +
+                (individualBinary.getCost() == testIndividual.getCost())
             );
-
-            System.out.println("\n=== HASIL PERHITUNGAN ===");
-
-            System.out.printf(
-                "Cost: %.5f%n", cost
-            );
-
-            // 5. Menampilkan koordinat FS sementara.
-            System.out.println("\nPosisi FS sementara:");
-
-            for (int index : stationIndices) {
-
-                Cell cell = map.getKosong().get(index);
-
-                System.out.println(cell);
-            }
-
         }
         catch (Exception e) {
 
@@ -96,3 +170,4 @@ public class Main {
         }
     }
 }
+
