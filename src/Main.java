@@ -9,28 +9,26 @@ public class Main {
 
             // Membaca peta.
             MapData map = MapReader.readMap(
-                "maps/n20_klaster_04.txt"
-            );
+                    "n20_acak_01.txt");
 
             // Menampilkan informasi peta.
             System.out.println("Ukuran peta: "
-                + map.getBaris() + " x "
-                + map.getKolom());
+                    + map.getBaris() + " x "
+                    + map.getKolom());
 
             System.out.println("Jumlah FS: "
-                + map.getP());
+                    + map.getP());
 
             System.out.println("Jumlah rumah: "
-                + map.getJumlahRumah());
+                    + map.getJumlahRumah());
 
             System.out.println("Jumlah pohon: "
-                + map.getJumlahPohon());
+                    + map.getJumlahPohon());
 
             System.out.println("Jumlah kosong: "
-                + map.getJumlahSelKosong());
+                    + map.getJumlahSelKosong());
 
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
     }
