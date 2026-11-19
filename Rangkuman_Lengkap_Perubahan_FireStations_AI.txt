@@ -1,0 +1,530 @@
+RANGKUMAN LENGKAP PERUBAHAN PROYEK
+FIRESTATIONS_AI - GENETIC ALGORITHM
+
+Versi rangkuman: 19 November 2026
+Sumber pemeriksaan:
+- ZIP FireStations_AI (2)(1).zip yang diunggah dalam percakapan.
+- Isi source Java, file peta, README.md, VERIFIKASI_AUDIT.md, dan riwayat Git di dalam ZIP.
+- Langkah kompilasi dan hasil eksekusi yang dilaporkan pengguna di CMD.
+- Pemeriksaan ulang kompilasi dan pengujian terhadap source yang ada di ZIP.
+
+CATATAN PENTING
+Dokumen ini membedakan tiga hal:
+1. Komponen yang memang sudah ada dalam perkembangan awal repository.
+2. Perbaikan dan integrasi yang tercermin pada source ZIP saat ini.
+3. Pekerjaan yang belum dilakukan.
+
+Karena itu, tidak semua kelas yang disebut di bawah berarti dibuat dari nol pada tahap audit. Sebagian sudah merupakan bagian dari pengembangan proyek sebelumnya, lalu diperbaiki atau diintegrasikan.
+
+======================================================================
+1. TUJUAN PROYEK
+======================================================================
+
+Proyek FireStations_AI bertujuan mencari lokasi penempatan sejumlah Fire Station (FS) pada peta berbentuk grid menggunakan Genetic Algorithm (GA).
+
+Karakter sel pada peta:
+- H = rumah.
+- T = pohon/halangan.
+- . = sel kosong yang dapat menjadi lokasi Fire Station dan jalur yang dapat dilewati.
+
+Setiap solusi/kromosom menentukan tepat p lokasi Fire Station pada sel kosong yang berbeda. Nilai Cost menghitung rata-rata jarak setiap rumah ke Fire Station terdekat. Tujuan optimasi adalah meminimalkan Cost.
+
+Perhitungan jarak dilakukan menggunakan Breadth First Search (BFS). Fitness dihitung dari Cost menggunakan rumus:
+
+    Fitness = 1 / (1 + Cost)
+
+======================================================================
+2. PERKEMBANGAN AWAL REPOSITORY
+======================================================================
+
+Riwayat Git memperlihatkan bahwa proyek berkembang bertahap, bukan langsung berisi seluruh komponen GA.
+
+Urutan perkembangan yang tampak pada riwayat commit:
+
+1. Membuat struktur repository dan file awal.
+2. Membuat/menyesuaikan Main.java sebagai titik masuk program.
+3. Menambahkan Cell, MapData, dan MapReader untuk mewakili serta membaca peta.
+4. Menambahkan BFS, CostCalculator, DistanceMatrix, dan beberapa peta uji.
+5. Menambahkan FitnessCalculator dan pengujiannya.
+6. Menambahkan operator Selection, Crossover, dan Mutation serta memperluas Main.java.
+7. Pada commit 98f1604 dengan pesan "menambahkan kode GA", GeneticAlgorithm.java dan Population.java pernah ditambahkan.
+8. Commit berikutnya, abd9f1b, melakukan revert terhadap penambahan GA tersebut. HEAD branch main di ZIP adalah 8e0ab80, yaitu hasil merge revert.
+
+Artinya, source GA yang ada pada working tree ZIP sekarang perlu diperhatikan status Git-nya. File GA muncul kembali pada folder proyek saat ini, tetapi belum tercatat sebagai file tracked di HEAD main.
+
+======================================================================
+3. TEMUAN PADA SOURCE AWAL YANG DIAUDIT
+======================================================================
+
+Catatan audit di VERIFIKASI_AUDIT.md mencatat beberapa masalah pada ZIP awal yang diperiksa:
+
+1. Main.java memanggil testing.ComponentTester, tetapi ComponentTester.java tidak tersedia pada ZIP awal. Kondisi ini menyebabkan kegagalan kompilasi.
+2. Individual.java dirancang untuk menyimpan hasil evaluasi, tetapi IndividualEvaluator.java belum tersedia pada ZIP awal.
+3. Folder tests/ belum tersedia pada ZIP awal, sehingga pengujian regresi tidak ikut tersedia.
+4. Chromosome belum memvalidasi seluruh parameter null dan belum mengurutkan gen Integer Encoding secara kanonis.
+5. CostCalculator belum memastikan jumlah lokasi FS sama persis dengan p pada peta.
+6. Individual belum memastikan pasangan nilai Cost dan Fitness saling konsisten.
+7. BFS belum memastikan MapData telah dikunci/sealed sebelum diproses.
+8. One-Point Crossover dapat memilih titik potong di ujung kromosom sehingga salah satu anak berpotensi hanya menyalin satu parent.
+9. MapReader terlalu ketat terhadap baris kosong setelah grid selesai dibaca.
+10. File tes.java kosong dan file .class lama ada di repository, sehingga berpotensi membingungkan saat pemeriksaan source dan hasil kompilasi.
+
+Temuan tersebut menjadi dasar perbaikan berikutnya.
+
+======================================================================
+4. PERBAIKAN MODEL DAN PEMBACAAN PETA
+======================================================================
+
+A. Cell.java
+
+Perubahan/perilaku yang tersedia pada source saat ini:
+- Menyimpan koordinat baris dan kolom sebagai nilai final.
+- Menolak koordinat negatif.
+- Menyediakan getRow() dan getColumn() agar makna koordinat lebih jelas.
+- Mempertahankan getX() dan getY() sebagai alias kompatibilitas, tetapi ditandai deprecated.
+- Menambahkan equals() dan hashCode() berdasarkan baris dan kolom.
+- toString() menampilkan koordinat sesuai format tugas (x,y) = (kolom,baris), menggunakan indeks mulai dari 1.
+
+B. MapData.java
+
+Perubahan/perilaku yang tersedia pada source saat ini:
+- Dimensi peta dan jumlah FS disimpan sebagai nilai final.
+- Memvalidasi ukuran baris, kolom, dan p agar positif.
+- Menyimpan grid, daftar rumah, pohon, dan sel kosong.
+- getGrid() mengembalikan salinan grid, bukan referensi grid internal.
+- getRumah(), getPohon(), dan getKosong() memberikan daftar read-only.
+- setCell() memvalidasi koordinat, karakter H/T/titik, serta menolak pengisian ulang koordinat yang sama.
+- seal() memastikan semua sel telah diisi sebelum peta dikunci.
+- Setelah sealed, peta tidak dapat diubah lagi melalui setCell().
+- Menyediakan getCell(), jumlah rumah, jumlah pohon, dan jumlah sel kosong.
+
+C. MapReader.java
+
+Perubahan/perilaku yang tersedia pada source saat ini:
+- Membaca header dengan format tepat tiga bilangan: m n p.
+- Memvalidasi file, header, dimensi, nilai p, jumlah baris, panjang baris, dan karakter grid.
+- Hanya menerima karakter H, T, dan titik.
+- Menolak peta tanpa rumah.
+- Menolak peta tanpa sel kosong.
+- Menolak jumlah FS yang melebihi jumlah sel kosong.
+- Mengabaikan baris kosong setelah grid selesai, tetapi tetap menolak data tambahan non-kosong.
+- Menutup file dengan try-with-resources.
+- Mengunci MapData dengan seal() setelah seluruh data valid.
+
+======================================================================
+5. PERBAIKAN ALGORITMA JARAK DAN EVALUASI
+======================================================================
+
+A. BFS.java
+
+- Menggunakan Breadth First Search dengan antrean.
+- Memeriksa empat arah pergerakan: atas, bawah, kiri, kanan.
+- Hanya sel kosong (.) yang dapat dilalui.
+- Rumah menjadi titik awal BFS; titik awal harus benar-benar sel H.
+- Memastikan MapData sudah sealed.
+- Jarak yang belum dapat dicapai disimpan sebagai -1 pada hasil BFS.
+
+B. DistanceMatrix.java
+
+- Menyimpan jarak dari setiap rumah ke setiap kandidat sel kosong.
+- Melakukan BFS sekali untuk setiap rumah dan menggunakan hasilnya untuk semua kandidat sel kosong.
+- Menyimpan jumlah FS wajib (p) dari peta.
+- Memvalidasi bahwa daftar kandidat mencakup seluruh sel kosong yang valid, tanpa null dan tanpa duplikasi.
+- Menyimpan salinan daftar kandidat dan mengeksposnya sebagai read-only.
+- getDistances() memberikan salinan mendalam matriks, sehingga pemanggil tidak dapat mengubah matriks internal.
+- Memvalidasi indeks rumah dan indeks sel kosong saat mengambil jarak.
+- Menggunakan penalti P = m * n untuk jarak yang tidak dapat dicapai, sesuai catatan implementasi tugas.
+
+C. CostCalculator.java
+
+- Memvalidasi DistanceMatrix.
+- Memastikan peta memiliki rumah sehingga rata-rata jarak dapat dihitung.
+- Menolak daftar FS null atau kosong.
+- Memastikan jumlah FS tepat sama dengan p pada peta.
+- Memastikan setiap indeks lokasi berada dalam rentang kandidat sel kosong.
+- Menolak lokasi FS duplikat.
+- Untuk setiap rumah, mengambil jarak minimum ke seluruh FS.
+- Menghasilkan Cost sebagai total jarak minimum seluruh rumah dibagi jumlah rumah.
+
+D. FitnessCalculator.java
+
+- Menghitung Fitness menggunakan rumus 1 / (1 + Cost).
+- Menolak Cost yang negatif, NaN, atau infinite.
+
+E. IndividualEvaluator.java
+
+- Ditambahkan untuk memisahkan evaluasi kromosom dari model Individual.
+- Memvalidasi Chromosome dan DistanceMatrix.
+- Memastikan jumlah sel kosong dan jumlah FS kromosom sesuai dengan DistanceMatrix.
+- Menghitung Cost melalui CostCalculator.
+- Menghitung Fitness melalui FitnessCalculator.
+- Membentuk Individual dari kromosom dan nilai evaluasi.
+
+======================================================================
+6. PERBAIKAN KROMOSOM DAN INDIVIDUAL
+======================================================================
+
+A. Chromosome.java
+
+- Mendukung dua representasi: BINARY dan INTEGER.
+- Membuat kromosom acak dengan pemilihan indeks FS tanpa duplikasi.
+- Menyediakan factory fromStationIndices() untuk membentuk kromosom dari lokasi FS.
+- Melakukan validasi jumlah sel kosong, jumlah FS, batas indeks, dan keunikan lokasi.
+- Menolak Random atau Representation null.
+- Menyalin array gen saat menyimpan atau mengembalikan data agar array internal tidak bocor.
+- Integer Encoding diurutkan secara kanonis. Dengan demikian, susunan indeks berbeda untuk himpunan lokasi FS yang sama dinormalisasi menjadi urutan yang sama.
+
+B. Individual.java
+
+- Menyimpan Chromosome, Cost, dan Fitness.
+- Menolak kromosom null.
+- Memastikan Cost dan Fitness merupakan nilai finite dan berada dalam rentang yang valid.
+- Memastikan Fitness konsisten dengan rumus 1 / (1 + Cost), menggunakan toleransi numerik.
+- Perhitungan Cost/Fitness dilakukan oleh IndividualEvaluator, bukan oleh model Individual.
+
+======================================================================
+7. OPERATOR GENETIC ALGORITHM
+======================================================================
+
+Komponen operator sudah ada dalam perkembangan repository sebelum integrasi GA penuh. Source saat ini juga memuat perbaikan validasi dan ketahanan operator.
+
+A. Selection.java
+
+- Roulette Wheel Selection: memilih individu berdasarkan proporsi Fitness.
+- Tournament Selection: memilih peserta tournament yang berbeda melalui pengacakan salinan populasi, lalu mengambil individu dengan Fitness tertinggi.
+- Memvalidasi populasi tidak kosong, elemen tidak null, dan Random tidak null.
+- Menangani kondisi numerik total Fitness yang tidak valid dengan fallback pemilihan acak.
+
+B. Crossover.java
+
+- Mendukung One-Point Crossover.
+- Mendukung Uniform Crossover.
+- Memvalidasi parent dan Random.
+- One-Point Crossover memilih titik potong internal ketika panjang kromosom minimal dua, sehingga kedua parent dapat berkontribusi.
+- Untuk panjang satu, tidak terdapat titik potong internal; implementasi memiliki penanganan khusus.
+- Anak yang dihasilkan tetap dibentuk melalui factory Chromosome agar validitas jumlah dan posisi FS diperiksa.
+
+C. Mutation.java
+
+- Single Relocation: memindahkan satu Fire Station ke sel kosong yang belum ditempati FS lain.
+- Multiple Relocation: memindahkan satu atau lebih FS ke posisi kosong yang berbeda.
+- Memvalidasi kromosom dan Random.
+- Menghindari posisi FS duplikat.
+- Jika semua sel kosong sudah ditempati FS, mutasi mengembalikan kromosom semula karena tidak ada lokasi baru.
+
+======================================================================
+8. KELAS PENGUJIAN DAN DEMONSTRASI
+======================================================================
+
+A. ComponentTester.java
+
+- Ditambahkan pada src/testing/.
+- Menampilkan informasi peta.
+- Membuat kromosom Binary dan Integer.
+- Menjalankan evaluasi untuk kedua representasi.
+- Menampilkan posisi Fire Station.
+- Menguji kesetaraan Cost untuk posisi FS yang sama pada dua representasi.
+- Menguji Roulette Wheel dan Tournament Selection.
+- Menguji One-Point dan Uniform Crossover.
+- Menguji Single dan Multiple Relocation Mutation.
+- Memeriksa validitas hasil crossover dan mutation.
+
+B. PreGARepairTest.java
+
+- Ditambahkan pada folder tests/.
+- Berisi 25 pengujian regresi untuk validasi model, pembacaan peta, BFS, DistanceMatrix, Cost, Fitness, Chromosome, Selection, Crossover, dan Mutation.
+- Pengujian juga menjalankan 2.000 iterasi mutation dan 2.000 iterasi crossover untuk memastikan jumlah FS, indeks, keunikan, dan validitas hasil.
+
+C. MapFileSmokeTest.java
+
+- Ditambahkan pada folder tests/.
+- Memeriksa apakah setiap file peta dapat dibaca.
+- Membuat DistanceMatrix.
+- Menghitung Cost contoh dengan memilih p indeks sel kosong pertama.
+- Cost dari smoke test ini bukan hasil optimasi GA; hanya memastikan alur pembacaan peta, matriks jarak, dan perhitungan Cost dapat berjalan.
+
+======================================================================
+9. INTEGRASI GENETIC ALGORITHM DAN POPULATION
+======================================================================
+
+A. GeneticAlgorithm.java
+
+File ini ada pada src/algorithm/ pada ZIP yang diperiksa saat ini.
+
+Kemampuan yang tersedia:
+- Mengatur evolusi populasi dari generasi ke generasi.
+- Menggunakan representasi kromosom Binary atau Integer.
+- Memilih Selection melalui enum ROULETTE_WHEEL atau TOURNAMENT.
+- Memilih Crossover melalui enum ONE_POINT atau UNIFORM.
+- Memilih Mutation melalui enum SINGLE_RELOCATION atau MULTIPLE_RELOCATION.
+- Memakai evaluation budget sebagai batas jumlah evaluasi baru, termasuk evaluasi populasi awal.
+- Menggunakan seed melalui objek Random agar percobaan dapat direproduksi.
+- Mendukung elitism untuk mempertahankan individu terbaik.
+- Menghitung statistik generasi, jumlah evaluasi, waktu eksekusi, dan alasan berhenti.
+- Menyimpan riwayat Best Cost dan Average Cost untuk analisis konvergensi.
+- Mendukung penghentian karena evaluation budget, stagnasi, atau batas waktu jika batas waktu diaktifkan.
+- Memiliki format output solusi yang menampilkan jumlah FS dan koordinat.
+
+Nilai default yang tertulis pada source saat ini:
+- Population Size = 100.
+- Crossover Rate = 0,8.
+- Mutation Rate = 0,05.
+- Elitism Rate = 0,20.
+- Tournament Size = 3.
+- Maksimum generasi stagnan = 50.
+- Batas waktu default = 0 ms (dinonaktifkan).
+
+Catatan: nilai default di source bukan otomatis nilai final yang harus digunakan pada eksperimen dosen. Untuk eksperimen, nilai harus mengikuti rancangan resmi.
+
+B. Population.java
+
+File ini ada pada src/model/ pada ZIP yang diperiksa saat ini.
+
+Fungsi yang tersedia:
+- Menyimpan daftar Individual dalam satu generasi.
+- Membentuk populasi awal secara acak.
+- Mengevaluasi setiap kromosom awal menjadi Individual.
+- Memvalidasi ukuran populasi, jumlah sel kosong, jumlah FS, dan kecocokan DistanceMatrix.
+- Menambahkan satu atau beberapa Individual.
+- Mengambil individu berdasarkan indeks.
+- Menghitung ukuran populasi dan memeriksa apakah kosong.
+- Mengambil salinan daftar individu yang tidak dapat dimodifikasi.
+- Mengambil individu terbaik dan terburuk.
+- Menghitung Best Cost, Best Fitness, Average Cost, dan Average Fitness.
+- Mengurutkan individu berdasarkan Fitness.
+- Mengambil sejumlah individu terbaik untuk proses elitism.
+
+C. Main.java
+
+Main.java saat ini sudah diubah untuk menjalankan dua mode:
+
+1. Mode pemeriksaan komponen:
+   java -cp out Main --components [path-peta]
+
+2. Mode Genetic Algorithm:
+   java -cp out Main [path-peta] [evaluation-budget] [seed]
+
+Default yang digunakan Main.java saat ini:
+- Peta: maps/testing_kecil.txt.
+- Evaluation budget: 1000.
+- Seed: 12345.
+- Representation: INTEGER.
+- Selection: TOURNAMENT.
+- Crossover: UNIFORM.
+- Mutation: MULTIPLE_RELOCATION.
+- Hyperparameter lain menggunakan default pada GeneticAlgorithm.
+
+Main.java menampilkan peta, seed, generasi, jumlah evaluasi, waktu eksekusi, alasan berhenti, Best Cost, serta solusi sesuai format tugas.
+
+======================================================================
+10. HASIL KOMPILASI DAN PENGUJIAN ULANG
+======================================================================
+
+Pengguna sebelumnya menjalankan kompilasi di Windows CMD dari folder proyek:
+
+    if exist out rmdir /s /q out
+    mkdir out
+    dir /s /b src\\*.java > sources.txt
+    javac -Xlint:all -d out @sources.txt
+
+Setelah berpindah ke folder proyek yang benar, program berhasil dijalankan dengan:
+
+    java -cp out Main maps\\testing_kecil.txt 1000 12345
+
+Output yang dilaporkan pengguna:
+
+    Generasi: 13
+    Evaluasi: 1000 / 1000
+    Waktu (ms): 25
+    Stop reason: Evaluation budget habis
+    Best Cost: 1.00000
+
+    3 1.00000
+    1 4
+    3 4
+    4 5
+
+Makna output:
+- Ada 3 Fire Station.
+- Cost terbaik yang ditemukan pada run tersebut adalah 1.00000.
+- Lokasi FS pada output adalah (kolom,baris) dengan indeks mulai dari 1.
+- Evaluation budget 1000 telah terpakai seluruhnya.
+
+Verifikasi ulang terhadap source ZIP dilakukan dengan kompilasi seluruh file Java di src/ dan tests/ menggunakan javac -Xlint:all.
+
+Hasil verifikasi ulang:
+- Kompilasi: berhasil, exit code 0.
+- PreGARepairTest: 25 pengujian lulus.
+- Main maps/testing_kecil.txt 1000 12345: berhasil; Best Cost 1.00000; output solusi sama dengan yang dilaporkan pengguna.
+- MapFileSmokeTest: kelima peta yang ada berhasil dibaca, dibuat DistanceMatrix, dan dihitung Cost contohnya.
+
+Waktu eksekusi dapat berubah antar-run atau mesin. Verifikasi ulang pada lingkungan pemeriksaan menghasilkan sekitar 29 ms, sedangkan pengguna sebelumnya melaporkan 25 ms. Perbedaan kecil ini tidak mengubah hasil Cost dan koordinat pada run tersebut.
+
+PENTING: satu run dengan Best Cost 1.00000 tidak membuktikan bahwa solusi adalah optimum global. Hasil ini hanya menunjukkan solusi terbaik yang ditemukan dalam run, seed, dan evaluation budget tersebut.
+
+======================================================================
+11. DATASET PETA YANG ADA SAAT INI
+======================================================================
+
+Lima file peta pada ZIP saat ini berhasil diuji:
+
+1. maps/n20_acak_01.txt
+   - Ukuran: 20 x 20
+   - Rumah (H): 40
+   - Pohon (T): 60
+   - Sel kosong: 300
+   - Jumlah FS (p): 3
+
+2. maps/n20_acak_02.txt
+   - Ukuran: 20 x 20
+   - Rumah (H): 39
+   - Pohon (T): 67
+   - Sel kosong: 294
+   - Jumlah FS (p): 3
+
+3. maps/n20_klaster_04.txt
+   - Ukuran: 20 x 20
+   - Rumah (H): 36
+   - Pohon (T): 73
+   - Sel kosong: 291
+   - Jumlah FS (p): 3
+
+4. maps/n80_labirin_01.txt
+   - Ukuran: 80 x 80
+   - Rumah (H): 606
+   - Pohon (T): 1868
+   - Sel kosong: 3926
+   - Jumlah FS (p): 40
+
+5. maps/testing_kecil.txt
+   - Ukuran: 5 x 5
+   - Rumah (H): 2
+   - Pohon (T): 2
+   - Sel kosong: 21
+   - Jumlah FS (p): 3
+
+Kondisi dataset:
+- Ada tiga peta 20 x 20.
+- Ada satu peta 80 x 80.
+- Ada satu peta kecil 5 x 5 untuk pengujian program.
+- Belum ada peta 40 x 40 pada ZIP ini.
+- Belum tersedia kumpulan peta yang mencakup seluruh variasi ukuran dan konfigurasi yang diperlukan untuk eksperimen lengkap.
+- Nilai p pada peta 20 x 20 yang tersedia adalah 3, sedangkan p pada peta 80 x 80 adalah 40. Kesesuaian nilai tersebut dengan ketentuan eksperimen dosen perlu diperiksa terhadap tabel instruksi terbaru.
+
+Perbandingan isi peta dengan versi commit HEAD menunjukkan file peta mengalami perubahan byte/format baris (line ending), tetapi isi teks setelah normalisasi line ending sama. Jadi tidak ditemukan perubahan isi grid pada kelima peta tersebut dalam perbandingan itu.
+
+======================================================================
+12. RALAT DOSEN UNTUK EKSPERIMEN 2A
+======================================================================
+
+Dosen menyampaikan bahwa perhitungan eksperimen 2A sebelumnya salah.
+
+Perhitungan sebelumnya:
+
+    3 x (4 x 5 x 30) x 4 x 3 = 21.600 eksperimen
+
+Perhitungan revisi dari dosen:
+
+    3 x (4 x 5 x 10) x 4 x 3 = 7.200 eksperimen
+
+Perubahan yang dipastikan dari pesan dosen adalah jumlah seed berbeda pada langkah tersebut dikurangi dari 30 menjadi 10. Target jumlah eksperimen sekarang adalah 7.200.
+
+Rincian arti setiap faktor dalam rumus tidak ditetapkan ulang di dokumen ini karena harus mengikuti tabel/rancangan resmi dosen. Interpretasi faktor seperti jumlah model, parameter, variasi nilai, map, atau ukuran map perlu dicocokkan dengan dokumen eksperimen 2A yang resmi.
+
+======================================================================
+13. PEKERJAAN YANG BELUM SELESAI
+======================================================================
+
+Hal-hal berikut belum tersedia atau belum terbukti selesai pada ZIP saat ini:
+
+1. ExperimentRunner.java untuk menjalankan seluruh kombinasi eksperimen 2A secara otomatis belum ada.
+2. CSVExporter.java belum ada.
+3. Belum ada hasil 7.200 run eksperimen.
+4. Belum ada CSV final berisi hasil seluruh eksperimen.
+5. Dataset belum memiliki seluruh ukuran, variasi peta, dan konfigurasi jumlah FS yang diperlukan oleh eksperimen resmi.
+6. Belum dilakukan analisis statistik keseluruhan eksperimen, misalnya rata-rata Cost, standar deviasi, dan runtime per konfigurasi.
+7. Belum dapat ditentukan konfigurasi GA terbaik dari eksperimen 2A karena seluruh percobaan belum dijalankan.
+8. Belum ada bukti bahwa Best Cost 1.00000 merupakan optimum global.
+9. README.md dan VERIFIKASI_AUDIT.md pada ZIP masih memiliki keterangan yang menyebut GeneticAlgorithm/framework GA belum dibuat. Keterangan tersebut sudah tidak sinkron dengan source ZIP sekarang karena GeneticAlgorithm.java, Population.java, dan integrasi Main.java tersedia di working tree saat ini.
+10. File placeholder kosong masih ada: src/algorithm/tes.java, src/experiment/tes.java, src/input/tes.java, src/model/tes.java, dan results/tes.java. Jadi, catatan sebelumnya yang menyatakan seluruh placeholder sudah dikeluarkan dari ZIP tidak akurat untuk ZIP saat ini.
+11. Folder out/ berisi file .class hasil kompilasi. Sebagian file .class lama masih terlacak di Git dan sebagian lainnya merupakan file baru. Folder hasil kompilasi ini perlu ditangani terpisah dari source final, misalnya melalui .gitignore yang sesuai.
+
+======================================================================
+14. STATUS GIT: HAL PENTING SEBELUM COMMIT/PUSH
+======================================================================
+
+ZIP memuat folder .git. Pada saat ZIP diperiksa:
+- Branch aktif: main.
+- HEAD: 8e0ab80 (merge dari revert penambahan GA).
+- Commit 98f1604 pernah menambahkan GeneticAlgorithm.java dan Population.java.
+- Commit abd9f1b kemudian melakukan revert atas penambahan tersebut.
+
+Walaupun demikian, source ZIP saat ini memiliki file-file berikut sebagai untracked menurut git status:
+- src/algorithm/GeneticAlgorithm.java
+- src/algorithm/IndividualEvaluator.java
+- src/model/Population.java
+- src/testing/ComponentTester.java
+- tests/PreGARepairTest.java
+- tests/MapFileSmokeTest.java
+- VERIFIKASI_AUDIT.md
+
+Banyak file lain berstatus modified, termasuk Main.java, beberapa kelas model/algorithm, README, file peta, dan file .class di out/.
+
+Artinya:
+- File GA dan perbaikan saat ini ada secara fisik di folder proyek dan sudah berhasil dikompilasi.
+- Namun file yang berstatus untracked belum menjadi bagian dari commit Git.
+- Jika proyek akan di-commit atau di-push, status Git perlu diperiksa dan source/test yang memang ingin disimpan harus ditambahkan secara eksplisit.
+- Jangan mengandalkan file .class di out/ sebagai source utama; source utama adalah file .java.
+- Jangan langsung menggunakan git add . tanpa memeriksa status, karena folder out/ berisi artefak hasil kompilasi.
+
+======================================================================
+15. KOREKSI TERHADAP RANGKUMAN SEBELUMNYA
+======================================================================
+
+Setelah pemeriksaan ulang, beberapa pernyataan rangkuman sebelumnya perlu dikoreksi:
+
+1. Sebelumnya tertulis bahwa placeholder tes.java dan file .class lama sudah tidak dimasukkan ke paket hasil audit. Pada ZIP terbaru yang diperiksa, beberapa tes.java kosong masih ada dan folder out/ juga masih ada.
+2. Sebelumnya dijelaskan seolah-olah status GA sudah sepenuhnya terintegrasi ke repository. Source GA memang ada dan dapat dijalankan, tetapi Git status menunjukkan beberapa source GA/perbaikan masih untracked, dan sejarah Git menunjukkan pernah ada commit revert.
+3. README.md dan VERIFIKASI_AUDIT.md tidak diperbarui mengikuti keberadaan file GA terbaru. Keduanya menyatakan GA belum dibuat, sehingga keterangannya sudah usang.
+4. Interpretasi rinci setiap faktor dalam rumus 7.200 tidak boleh dianggap pasti sebelum dicocokkan dengan rancangan resmi dosen.
+5. Best Cost 1.00000 dari satu run tidak boleh disebut sebagai bukti optimum global.
+
+======================================================================
+16. LANGKAH SELANJUTNYA YANG DISARANKAN
+======================================================================
+
+Urutan pengerjaan yang disarankan:
+
+1. Cocokkan tabel eksperimen 2A dari dosen: definisi setiap faktor, tiga model yang dibandingkan, empat parameter, lima nilai parameter, variasi peta, ukuran peta, dan sepuluh seed.
+2. Lengkapi dataset peta sesuai spesifikasi resmi, termasuk ukuran yang belum tersedia dan nilai p yang benar.
+3. Perbarui README.md dan VERIFIKASI_AUDIT.md agar sesuai dengan source GA terbaru.
+4. Pastikan seluruh file source baru dan hasil perbaikan yang akan dipertahankan tercatat di Git. Pisahkan source dari artefak out/.
+5. Buat kelas konfigurasi eksperimen, misalnya ExperimentConfig.java.
+6. Buat ExperimentRunner.java untuk menghasilkan seluruh kombinasi sesuai tabel dosen dan memastikan penghitung total tepat 7.200.
+7. Buat CSVExporter.java untuk menyimpan satu baris per run, termasuk identitas model, peta, ukuran, parameter, nilai parameter, seed, Best Cost, generasi, evaluasi, dan runtime.
+8. Uji runner menggunakan jumlah kecil terlebih dahulu dan cek data CSV-nya.
+9. Setelah validasi berhasil, jalankan keseluruhan 7.200 eksperimen.
+10. Analisis hasil eksperimen, misalnya rata-rata Cost, standar deviasi, dan runtime untuk setiap kombinasi. Gunakan hasil aktual untuk menentukan konfigurasi terbaik dan menulis laporan.
+
+======================================================================
+17. KESIMPULAN STATUS PROYEK SAAT INI
+======================================================================
+
+Proyek telah berkembang dari struktur dasar pembacaan peta dan representasi model, menjadi implementasi komponen jarak, evaluasi Cost/Fitness, representasi kromosom, operator Selection/Crossover/Mutation, pengujian regresi, serta integrasi Genetic Algorithm dan Population.
+
+Perbaikan validasi dan perlindungan data telah diterapkan pada beberapa komponen penting. Source ZIP saat ini berhasil dikompilasi, 25 pengujian regresi berhasil lulus, seluruh lima peta yang tersedia lolos smoke test, dan satu run GA dengan evaluation budget 1000 berhasil menghasilkan Best Cost 1.00000.
+
+Namun, proyek belum mencapai tahap penyelesaian eksperimen 2A. Dataset masih perlu dilengkapi, ExperimentRunner dan CSVExporter belum dibuat, dan 7.200 eksperimen belum dijalankan. Selain itu, status Git, README, catatan audit, file placeholder kosong, serta artefak out/ masih perlu dirapikan.
+
+Dengan demikian, status paling akurat adalah:
+
+- Komponen dasar dan perbaikan utama: tersedia.
+- Integrasi GA untuk satu kali run: tersedia dan teruji.
+- Pengujian regresi komponen: 25/25 lulus.
+- Pengujian seluruh peta yang tersedia: 5/5 lolos smoke test.
+- Dataset lengkap untuk eksperimen resmi: belum.
+- Otomatisasi dan pelaksanaan 7.200 eksperimen: belum.
+- Analisis statistik eksperimen 2A: belum.
+- Sinkronisasi dokumentasi dan Git: masih perlu dilakukan.
+
+Akhir dokumen.
