@@ -1,0 +1,42 @@
+KEPUTUSAN OTOMATIS EKSPERIMEN TAHAP 2A (Model #2)
+Waktu selesai: 2026-11-20 11:41:16
+Jumlah seed per konfigurasi: 10 (sesuai ralat dosen)
+Kriteria pemilihan: Rata-rata rasio cost terhadap kandidat terbaik per peta (terkecil = terbaik)
+
+1. Populasi (pop) -> TERPILIH: 50 (runner-up: 150)
+   - pop=50    | skor_rasio=1.001872 | rata_cost=6.19878
+   - pop=150   | skor_rasio=1.002673 | rata_cost=6.20322
+   - pop=250   | skor_rasio=1.002853 | rata_cost=6.20550
+   - pop=500   | skor_rasio=1.008878 | rata_cost=6.24347
+   - pop=1000  | skor_rasio=1.026033 | rata_cost=6.35120
+
+2. Probabilitas Crossover (pc) [dengan pop=50] -> TERPILIH: 0.95 (runner-up: 0.9)
+   - pc=0.95   | skor_rasio=1.001590 | rata_cost=6.19757
+   - pc=0.9    | skor_rasio=1.001892 | rata_cost=6.20012
+   - pc=0.7    | skor_rasio=1.003214 | rata_cost=6.20786
+   - pc=0.6    | skor_rasio=1.003863 | rata_cost=6.21111
+   - pc=0.5    | skor_rasio=1.006567 | rata_cost=6.22878
+
+3. Probabilitas Mutasi (pm) [dengan pop=50, pc=0.95] -> TERPILIH: 0.02
+   - pm=0.02   | skor_rasio=1.001797 | rata_cost=6.19303
+   - pm=0.01   | skor_rasio=1.003798 | rata_cost=6.20570
+   - pm=0.1    | skor_rasio=1.005728 | rata_cost=6.21772
+   - pm=0.15   | skor_rasio=1.009150 | rata_cost=6.23829
+   - pm=0.2    | skor_rasio=1.013780 | rata_cost=6.26713
+
+4. Elitism (elit) [dengan pop=50, pc=0.95, pm=0.02] -> TERPILIH: 0.25
+   - elit=0.25  | skor_rasio=1.002684 | rata_cost=6.19841
+   - elit=0.15  | skor_rasio=1.004951 | rata_cost=6.21100
+   - elit=0.3   | skor_rasio=1.008471 | rata_cost=6.23349
+   - elit=0.1   | skor_rasio=1.011381 | rata_cost=6.25047
+   - elit=0.05  | skor_rasio=1.049774 | rata_cost=6.48770
+
+==========================================
+HYPERPARAMETER TERBAIK TAHAP 2A:
+  pop  = 50 (top 2: 50, 150)
+  pc   = 0.95 (top 2: 0.95, 0.9)
+  pm   = 0.02
+  elit = 0.25
+
+Perintah siap pakai untuk lanjut ke Tahap 2B (30 seed):
+  java -cp out experiment.ExperimentRunnerTahap2 tahap2b results/m2_tahap2b.csv 30 50 150 0.95 0.9 0.02 0.25 --model 2
