@@ -1,0 +1,42 @@
+KEPUTUSAN OTOMATIS EKSPERIMEN TAHAP 2A (Model #3)
+Waktu selesai: 2026-11-20 10:50:48
+Jumlah seed per konfigurasi: 10 (sesuai ralat dosen)
+Kriteria pemilihan: Rata-rata rasio cost terhadap kandidat terbaik per peta (terkecil = terbaik)
+
+1. Populasi (pop) -> TERPILIH: 250 (runner-up: 500)
+   - pop=250   | skor_rasio=1.000810 | rata_cost=6.20230
+   - pop=500   | skor_rasio=1.002262 | rata_cost=6.21154
+   - pop=150   | skor_rasio=1.002504 | rata_cost=6.21329
+   - pop=1000  | skor_rasio=1.004767 | rata_cost=6.22765
+   - pop=50    | skor_rasio=1.005001 | rata_cost=6.22761
+
+2. Probabilitas Crossover (pc) [dengan pop=250] -> TERPILIH: 0.7 (runner-up: 0.5)
+   - pc=0.7    | skor_rasio=1.001949 | rata_cost=6.20385
+   - pc=0.5    | skor_rasio=1.002132 | rata_cost=6.20530
+   - pc=0.9    | skor_rasio=1.002286 | rata_cost=6.20586
+   - pc=0.95   | skor_rasio=1.003538 | rata_cost=6.21407
+   - pc=0.6    | skor_rasio=1.003686 | rata_cost=6.21409
+
+3. Probabilitas Mutasi (pm) [dengan pop=250, pc=0.7] -> TERPILIH: 0.15
+   - pm=0.15   | skor_rasio=1.001630 | rata_cost=6.18029
+   - pm=0.2    | skor_rasio=1.001636 | rata_cost=6.18008
+   - pm=0.1    | skor_rasio=1.002416 | rata_cost=6.18525
+   - pm=0.02   | skor_rasio=1.013117 | rata_cost=6.25109
+   - pm=0.01   | skor_rasio=1.019431 | rata_cost=6.28991
+
+4. Elitism (elit) [dengan pop=250, pc=0.7, pm=0.15] -> TERPILIH: 0.3
+   - elit=0.3   | skor_rasio=1.001081 | rata_cost=6.17985
+   - elit=0.25  | skor_rasio=1.001333 | rata_cost=6.18057
+   - elit=0.15  | skor_rasio=1.002357 | rata_cost=6.18709
+   - elit=0.1   | skor_rasio=1.003555 | rata_cost=6.19459
+   - elit=0.05  | skor_rasio=1.011939 | rata_cost=6.24584
+
+==========================================
+HYPERPARAMETER TERBAIK TAHAP 2A:
+  pop  = 250 (top 2: 250, 500)
+  pc   = 0.7 (top 2: 0.7, 0.5)
+  pm   = 0.15
+  elit = 0.3
+
+Perintah siap pakai untuk lanjut ke Tahap 2B (30 seed):
+  java -cp out experiment.ExperimentRunnerTahap2 tahap2b results/m3_tahap2b.csv 30 250 500 0.7 0.5 0.15 0.3 --model 3
