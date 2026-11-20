@@ -21,9 +21,13 @@ public class CSVWriter implements AutoCloseable {
 
     private final BufferedWriter writer;
 
-    // Membuka file (membuat folder jika belum ada) dan menulis header.
+// Membuka file (membuat folder jika belum ada) dan menulis header.
     public CSVWriter(String path) throws IOException {
         File file = new File(path);
+        if (file.exists()) {
+            throw new IOException("File sudah ada: " + path +
+                    ". Hapus atau ganti nama dulu.");
+        }
         File parent = file.getAbsoluteFile().getParentFile();
         if (parent != null && !parent.exists()) {
             parent.mkdirs();
@@ -31,10 +35,6 @@ public class CSVWriter implements AutoCloseable {
         writer = new BufferedWriter(new OutputStreamWriter(
                 new FileOutputStream(file), StandardCharsets.UTF_8));
         tulis(HEADER);
-        if (file.exists()) {
-            throw new IOException("File sudah ada: " + path +
-                    ". Hapus atau ganti nama dulu.");
-        }
     }
 
     // Menulis satu baris. Setiap kolom di-escape bila mengandung koma atau tanda
