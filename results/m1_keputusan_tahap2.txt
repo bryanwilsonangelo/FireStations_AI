@@ -1,0 +1,42 @@
+KEPUTUSAN OTOMATIS EKSPERIMEN TAHAP 2A (Model #1)
+Waktu selesai: 2026-11-20 10:48:18
+Jumlah seed per konfigurasi: 10 (sesuai ralat dosen)
+Kriteria pemilihan: Rata-rata rasio cost terhadap kandidat terbaik per peta (terkecil = terbaik)
+
+1. Populasi (pop) -> TERPILIH: 150 (runner-up: 50)
+   - pop=150   | skor_rasio=1.001441 | rata_cost=6.17602
+   - pop=50    | skor_rasio=1.001892 | rata_cost=6.17830
+   - pop=250   | skor_rasio=1.003943 | rata_cost=6.19186
+   - pop=500   | skor_rasio=1.009336 | rata_cost=6.22570
+   - pop=1000  | skor_rasio=1.028811 | rata_cost=6.34848
+
+2. Probabilitas Crossover (pc) [dengan pop=150] -> TERPILIH: 0.9 (runner-up: 0.6)
+   - pc=0.9    | skor_rasio=1.001458 | rata_cost=6.18071
+   - pc=0.6    | skor_rasio=1.001575 | rata_cost=6.18179
+   - pc=0.7    | skor_rasio=1.001761 | rata_cost=6.18269
+   - pc=0.5    | skor_rasio=1.001879 | rata_cost=6.18342
+   - pc=0.95   | skor_rasio=1.002464 | rata_cost=6.18702
+
+3. Probabilitas Mutasi (pm) [dengan pop=150, pc=0.9] -> TERPILIH: 0.02
+   - pm=0.02   | skor_rasio=1.001851 | rata_cost=6.18327
+   - pm=0.1    | skor_rasio=1.002008 | rata_cost=6.18473
+   - pm=0.01   | skor_rasio=1.002527 | rata_cost=6.18738
+   - pm=0.15   | skor_rasio=1.003231 | rata_cost=6.19237
+   - pm=0.2    | skor_rasio=1.005395 | rata_cost=6.20579
+
+4. Elitism (elit) [dengan pop=150, pc=0.9, pm=0.02] -> TERPILIH: 0.25
+   - elit=0.25  | skor_rasio=1.001723 | rata_cost=6.19612
+   - elit=0.15  | skor_rasio=1.001846 | rata_cost=6.19717
+   - elit=0.3   | skor_rasio=1.003126 | rata_cost=6.20532
+   - elit=0.1   | skor_rasio=1.010063 | rata_cost=6.24788
+   - elit=0.05  | skor_rasio=1.035325 | rata_cost=6.40534
+
+==========================================
+HYPERPARAMETER TERBAIK TAHAP 2A:
+  pop  = 150 (top 2: 150, 50)
+  pc   = 0.9 (top 2: 0.9, 0.6)
+  pm   = 0.02
+  elit = 0.25
+
+Perintah siap pakai untuk lanjut ke Tahap 2B (30 seed):
+  java -cp out experiment.ExperimentRunnerTahap2 tahap2b results/m1_tahap2b.csv 30 150 50 0.9 0.6 0.02 0.25 --model 1
