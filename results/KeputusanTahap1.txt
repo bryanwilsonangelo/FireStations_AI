@@ -1,0 +1,14 @@
+KEPUTUSAN MODEL TAHAP 1
+Tanggal: 20 November 2026
+Sumber data: results\rata_cost_tahap1.csv (30 seed per model, 12 peta)
+
+Kriteria:
+Rata-rata rasio cost setiap model terhadap model dengan cost terendah pada masing-masing peta (skor ideal = 1.000000). Metode rasio digunakan agar setiap peta memiliki bobot evaluasi yang setara meskipun rentang nilai cost antar ukuran dan tipe peta berbeda.
+
+Tiga model terpilih:
+1. BINARY/ROULETTE/UNIFORM/SINGLE   | skor: 1.000256 | rata-rata cost: 6.15996
+2. BINARY/ROULETTE/UNIFORM/MULTIPLE | skor: 1.003356 | rata-rata cost: 6.17806
+3. BINARY/ROULETTE/ONE_POINT/SINGLE | skor: 1.005268 | rata-rata cost: 6.18946
+
+Alasan:
+Ketiga kombinasi model ini mencatat skor rasio terkecil dan paling konsisten di seluruh ukuran peta (tiny, small, dan normal). Model 1 (BINARY/ROULETTE/UNIFORM/SINGLE) mendominasi dengan menjadi yang terbaik di 10 dari 12 peta, sementara Model 2 unggul pada 2 peta ukuran tiny. Model 3 dipilih sebagai peringkat ketiga sebelum terjadi penurunan performa yang lebih terlihat pada peringkat keempat (INTEGER/ROULETTE/UNIFORM/SINGLE dengan skor 1.008243). Karena selisih performa ketiga model teratas berada di bawah 1%, ketiganya dilanjutkan ke eksperimen penyetelan hyperparameter pada Tahap 2.
