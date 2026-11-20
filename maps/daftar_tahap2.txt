@@ -1,0 +1,14 @@
+# Daftar peta untuk tahap 2. Format: label path_peta
+# Pembagian: per ukuran 2 acak (03,04), 1 klaster (02), 1 labirin (02).
+tiny maps/tiny/n20_acak_03.txt
+tiny maps/tiny/n20_acak_04.txt
+tiny maps/tiny/n20_klaster_02.txt
+tiny maps/tiny/n20_labirin_02.txt
+small maps/small/n40_acak_03.txt
+small maps/small/n40_acak_04.txt
+small maps/small/n40_klaster_02.txt
+small maps/small/n40_labirin_02.txt
+normal maps/normal/n60_acak_03.txt
+normal maps/normal/n60_acak_04.txt
+normal maps/normal/n60_klaster_02.txt
+normal maps/normal/n60_labirin_02.txt
