@@ -1,0 +1,2 @@
+tahap,ukuran,peta,representasi,seleksi,crossover,mutasi,pop,budget,pc,pm,elit,seed_index,seed,cost,fitness,evaluasi,generasi,waktu_ms,p
+pengujian,large,maps\large\n80_acak_01.txt,BINARY,ROULETTE,ONE_POINT,SINGLE,250,500000,0.5,0.15,0.3,0,14344,6.373626373626373,0.13561847988077497,500000,4973,191931,40

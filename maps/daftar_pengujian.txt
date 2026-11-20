@@ -1,0 +1,6 @@
+large maps\large\n80_acak_01.txt
+large maps\large\n80_acak_02.txt
+large maps\large\n80_klaster_03.txt
+large maps\large\n80_klaster_04.txt
+large maps\large\n80_labirin_02.txt
+large maps\large\n80_labirin_04.txt
