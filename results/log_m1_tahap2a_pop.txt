@@ -1,5 +1,0 @@
-Mode tahap2a_pop: 12 peta x 5 skenario x 10 seed = 600 percobaan
-Hasil disimpan ke: C:\Users\jamie\OneDrive\Documents\SEM 5\AI\FireStations_AI\results\m1_tahap2a_pop.csv
-Exception in thread "main" java.io.IOException: File sudah ada: C:\Users\jamie\OneDrive\Documents\SEM 5\AI\FireStations_AI\results\m1_tahap2a_pop.csv. Hapus atau ganti nama dulu.
-	at experiment.CSVWriter.<init>(CSVWriter.java:35)
-	at experiment.ExperimentRunnerTahap2.main(ExperimentRunnerTahap2.java:277)
